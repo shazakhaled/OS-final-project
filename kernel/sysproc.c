@@ -107,3 +107,19 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+uint64
+sys_meminfo(void)
+{
+  uint64 addr;
+  struct meminfo mi;
+
+  if(argaddr(0, &addr) < 0)
+    return -1;
+
+  get_mem_stats(&mi);
+
+  if(copyout(myproc()->pagetable, addr, (char *)&mi, sizeof(mi)) < 0)
+    return -1;
+
+  return 0;
+}
