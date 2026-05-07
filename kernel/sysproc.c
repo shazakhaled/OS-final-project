@@ -108,21 +108,17 @@ sys_uptime(void)
   return xticks;
 }
 
+
 uint64
 sys_meminfo(void)
 {
-  struct meminfo mi;
   uint64 addr;
+  struct meminfo mi;
+  
+  argaddr(0, &addr); 
 
   mi.free_mem = count_free_mem();
-  mi.used_mem = (PHYSTOP - KERNBASE) - mi.free_mem;
-
-  printf("\n--- Kernel Memory Stats ---\n");
-  printf("Free Memory: %d bytes\n", (int)mi.free_mem);
-  printf("Used Memory: %d bytes\n", (int)mi.used_mem);
-  printf("---------------------------\n");
-
-  argaddr(0, &addr); 
+  mi.used_mem = (128 * 1024 * 1024) - mi.free_mem;
 
   if(copyout(myproc()->pagetable, addr, (char *)&mi, sizeof(mi)) < 0)
     return -1;

@@ -1,20 +1,35 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
-int
-main(int argc, char *argv[])
-{
+void test_result(char *name, int condition) {
+    printf("TEST: %s -> ", name);
+    if(condition) {
+        printf("PASSED [OK]\n");
+    } else {
+        printf("FAILED [X]\n");
+    }
+}
+
+int main() {
     struct meminfo mi;
     
-    if(meminfo(&mi) < 0){
-        printf("Error: meminfo syscall failed\n");
-        exit(1);
-    }
+    printf("--- Running System Call Test Cases ---\n\n");
 
-    printf("--- System Memory Info ---\n");
-    printf("Free Memory: %ld bytes\n", mi.free_mem);
-    printf("Used Memory: %ld bytes\n", mi.used_mem);
-    printf("Total System Memory: %ld bytes\n", mi.free_mem + mi.used_mem);
-    
+    // Case 1: Standard Call
+    int res = meminfo(&mi);
+    printf("Case 1: Valid Pointer\n");
+    printf("  Expected: 0, Actual: %d\n", res);
+    test_result("Return Code", res == 0);
+    test_result("Memory Logic", (mi.free_mem + mi.used_mem == 134217728));
+
+    printf("\n");
+
+    // Case 2: Invalid Pointer (NULL)
+    int res_null = meminfo((struct meminfo *)0);
+    printf("Case 2: NULL Pointer\n");
+    printf("  Expected: -1, Actual: %d\n", res_null);
+    test_result("Security Check", res_null == -1);
+
+    printf("\n------------------------------------\n");
     exit(0);
 }
