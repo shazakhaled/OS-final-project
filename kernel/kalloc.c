@@ -81,21 +81,19 @@ kalloc(void)
   return (void*)r;
 }
 
-void
-get_mem_stats(struct meminfo *mi)
+uint64
+count_free_mem(void)
 {
   struct run *r;
-  uint64 free_pages = 0;
-  uint64 total_pages = (PHYSTOP - KERNBASE) / 4096;
+  uint64 n = 0;
 
   acquire(&kmem.lock);
   r = kmem.freelist;
   while(r){
-    free_pages++;
+    n++;
     r = r->next;
   }
   release(&kmem.lock);
 
-  mi->free_mem = free_pages * 4096;
-  mi->used_mem = (total_pages - free_pages) * 4096;
+  return n * 4096;
 }
