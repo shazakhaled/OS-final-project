@@ -125,3 +125,46 @@ sys_meminfo(void)
 
   return 0;
 }
+
+uint64
+sys_getrlimit(void)
+{
+  int resource;
+  uint64 user_rlim_addr;
+  struct rlimit lim;
+
+  // في XV6 الـ functions دي void، بنناديها والـ Kernel بيملى المتغيرات
+  argint(0, &resource);
+  argaddr(1, &user_rlim_addr);
+
+  // default init
+  lim.rlim_cur = 0;
+  lim.rlim_max = 0;
+
+  switch(resource) {
+    case RLIMIT_NOFILE: {
+       int used = get_total_open_files(); 
+
+      lim.rlim_max = NOFILE;
+      if (used >= NOFILE) {
+          lim.rlim_cur = 0;
+      } else {
+          lim.rlim_cur = NOFILE - used;
+      }
+      break;
+    }
+    case RLIMIT_MEMORY:
+      break;
+    case RLIMIT_CPU:
+      break;
+    default:
+      return -1;
+  }
+
+  struct proc *p = myproc();
+ 
+  if(copyout(p->pagetable, user_rlim_addr, (char *)&lim, sizeof(lim)) < 0)
+    return -1;
+
+  return 0;
+}

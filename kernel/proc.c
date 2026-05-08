@@ -124,6 +124,9 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->rlimit_cur = 16;
+  p->rlimit_max = 16;
+
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){

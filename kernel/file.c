@@ -178,3 +178,25 @@ filewrite(struct file *f, uint64 addr, int n)
   return ret;
 }
 
+// Count number of opened files in the system
+
+int
+get_total_open_files(void){
+
+int count = 0;
+struct file *f; 
+
+acquire(&ftable.lock);
+
+for(f = ftable.file; f  < ftable.file + NFILE ; f++){
+if(f->ref > 0){
+count++;
+}
+}
+
+release(&ftable.lock);
+
+
+
+return count;
+}

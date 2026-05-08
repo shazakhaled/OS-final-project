@@ -148,6 +148,9 @@ UPROGS=\
         $U/_free\
         $U/_memtest\
         $U/_stress\
+        $U/_getrlimit\
+        $U/_exhaust_test\
+
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
