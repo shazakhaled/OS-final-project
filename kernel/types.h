@@ -13,3 +13,8 @@ struct meminfo {
   uint64 free_mem;
   uint64 used_mem;
 };
+
+struct rlimit{
+   uint64 rlim_cur;
+   uint64  rlim_max;
+};
