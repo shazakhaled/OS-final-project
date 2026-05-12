@@ -83,6 +83,8 @@ usertrap(void)
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
     yield();
+  if(myproc()!=0)
+  myproc()->cpu_ticks++;
 
   prepare_return();
 
