@@ -156,7 +156,19 @@ sys_getrlimit(void)
     case RLIMIT_MEMORY:
       break;
     case RLIMIT_CPU:
+    {
+      lim.rlim_max=MAX_CPU_TICKS;
+      uint64 used =myproc()->cpu_ticks;
+      if(used>MAX_CPU_TICKS)
+      {
+        lim.rlim_cur=0;
+      }
+      else
+      {
+        lim.rlim_cur=lim.rlim_max-used;
+      }
       break;
+    }
     default:
       return -1;
   }
@@ -168,3 +180,5 @@ sys_getrlimit(void)
 
   return 0;
 }
+
+

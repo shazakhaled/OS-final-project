@@ -15,3 +15,4 @@
 #define RLIMIT_NOFILE 0
 #define RLIMIT_MEMORY 1
 #define RLIMIT_CPU 2
+#define MAX_CPU_TICKS  500   

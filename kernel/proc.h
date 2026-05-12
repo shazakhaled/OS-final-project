@@ -93,7 +93,7 @@ struct proc {
   int pid;                     // Process ID
   int rlimit_cur;              // Current soft limit for open files
   int rlimit_max;              // Hard limit for open files
-
+  uint64 cpu_ticks;
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 

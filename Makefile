@@ -150,6 +150,7 @@ UPROGS=\
         $U/_stress\
         $U/_getrlimit\
         $U/_exhaust_test\
+        $U/_cpu_limit_test\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)
