@@ -103,6 +103,7 @@ extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
 extern uint64 sys_meminfo(void);
 extern uint64 sys_getrlimit(void);
+extern uint64 sys_setrlimit(void);
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -129,6 +130,8 @@ static uint64 (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_meminfo] sys_meminfo,
 [SYS_getrlimit] sys_getrlimit,
+[SYS_setrlimit] sys_setrlimit,
+
 };
 
 void

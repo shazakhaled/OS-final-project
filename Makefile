@@ -151,6 +151,8 @@ UPROGS=\
         $U/_getrlimit\
         $U/_exhaust_test\
         $U/_cpu_limit_test\
+        $U/_setrlimit\
+        $U/_fl_test\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)

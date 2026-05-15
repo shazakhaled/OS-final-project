@@ -44,3 +44,4 @@ entry("pause");
 entry("uptime");
 entry("meminfo");
 entry("getrlimit");
+entry("setrlimit");
