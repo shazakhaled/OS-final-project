@@ -200,3 +200,15 @@ release(&ftable.lock);
 
 return count;
 }
+
+// count open files  for a specific process  not all process
+int
+get_proc_open_files(struct proc *p)
+{
+int count = 0;
+for(int i = 0; i < NOFILE; i++){
+if(p->ofile[i] != 0)
+count++;
+}
+return count;
+}

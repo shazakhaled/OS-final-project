@@ -27,6 +27,7 @@ int pause(int);
 int uptime(void);
 int meminfo(struct meminfo *);
 int getrlimit(int resource, struct rlimit *rlim);
+int setrlimit(int resource, struct rlimit *lim);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
