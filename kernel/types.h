@@ -10,6 +10,7 @@ typedef unsigned long uint64;
 typedef uint64 pde_t;
 
 struct meminfo {
+  uint64 total_mem;
   uint64 free_mem;
   uint64 used_mem;
 };
