@@ -20,7 +20,7 @@ test_result(char *name, int condition)
   }
 }
 
-// Case 1: الـ syscall شغالة وبترجع قيم منطقية
+// Case 1: هل الـ syscall شغالة وبترجع قيم منطقية؟
 void
 test_valid_pointer(void)
 {
@@ -37,7 +37,7 @@ test_valid_pointer(void)
   printf("\n");
 }
 
-// Case 2: NULL pointer
+// Case 2: لو بعتلها NULL
 void
 test_null_pointer(void)
 {
@@ -47,7 +47,7 @@ test_null_pointer(void)
   printf("\n");
 }
 
-// Case 3: bad pointer
+// Case 3: لو بعتلها عنوان غلط
 void
 test_bad_pointer(void)
 {
@@ -57,16 +57,17 @@ test_bad_pointer(void)
   printf("\n");
 }
 
-// Case 4: الـ malloc بيقلل الـ free memory
+// Case 4: الـ sbrk بيقلل الـ free memory
 void
 test_alloc_decreases(void)
 {
   printf("Case 4: Allocation decreases free memory\n");
   struct meminfo before, after;
+
   meminfo(&before);
 
-  char *p = malloc(4 * MB);
-  if(p == 0){ printf("  SKIP: malloc failed\n\n"); return; }
+  char *p = sbrk(4 * MB);
+  if(p == (char*)-1){ printf("  SKIP: sbrk failed\n\n"); return; }
   for(int i = 0; i < 4 * MB; i += PGSIZE)
     p[i] = 1;
 
@@ -76,24 +77,24 @@ test_alloc_decreases(void)
   test_result("total unchanged",     after.total_mem == before.total_mem);
   test_result("decrease >= 4MB",     before.free_mem - after.free_mem >= 4 * MB);
 
-  free(p);
+  sbrk(-(4 * MB));
   printf("\n");
 }
 
-// Case 5: الـ free() بيزود الـ free memory
+// Case 5: الـ sbrk(-n) بيزود الـ free memory
 void
 test_free_increases(void)
 {
   printf("Case 5: Free increases free memory\n");
   struct meminfo before, after;
 
-  char *p = malloc(4 * MB);
-  if(p == 0){ printf("  SKIP: malloc failed\n\n"); return; }
+  char *p = sbrk(4 * MB);
+  if(p == (char*)-1){ printf("  SKIP: sbrk failed\n\n"); return; }
   for(int i = 0; i < 4 * MB; i += PGSIZE)
     p[i] = 1;
 
   meminfo(&before);
-  free(p);
+  sbrk(-(4 * MB));
   meminfo(&after);
 
   test_result("free increased",  after.free_mem > before.free_mem);
@@ -102,7 +103,7 @@ test_free_increases(void)
   printf("\n");
 }
 
-// Case 6: استدعائين متتاليين
+// Case 6: استدعائين متتاليين بيرجعوا نفس النتيجة
 void
 test_consistency(void)
 {
@@ -117,30 +118,30 @@ test_consistency(void)
   printf("\n");
 }
 
-// Case 7: allocations متعددة
+// Case 7: allocations متعددة بتتراكم
 void
 test_multiple_allocs(void)
 {
   printf("Case 7: Multiple allocations\n");
   struct meminfo before, after;
-  char *ptrs[4];
   int n = 4;
 
   meminfo(&before);
-  for(int i = 0; i < n; i++){
-    ptrs[i] = malloc(MB);
-    if(ptrs[i] == 0){ printf("  SKIP: malloc failed\n\n"); return; }
-    for(int j = 0; j < MB; j += PGSIZE)
-      ptrs[i][j] = 1;
-  }
-  meminfo(&after);
 
+  for(int i = 0; i < n; i++){
+    char *p = sbrk(MB);
+    if(p == (char*)-1){ printf("  SKIP: sbrk failed\n\n"); return; }
+    for(int j = 0; j < MB; j += PGSIZE)
+      p[j] = 1;
+  }
+
+  meminfo(&after);
   test_result("free decreased by >= 4MB",
               before.free_mem - after.free_mem >= (uint64)(n * MB));
   test_result("total unchanged",
               after.total_mem == before.total_mem);
 
-  for(int i = 0; i < n; i++) free(ptrs[i]);
+  sbrk(-(n * MB));
   printf("\n");
 }
 

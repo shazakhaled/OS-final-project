@@ -125,7 +125,7 @@ found:
   p->pid = allocpid();
   p->state = USED;
   p->cpu_ticks = 0;
-  p->cpu_ticks_max = 500;
+  p->cpu_ticks_max =500;
   p->nofile_cur=NOFILE;
   p->nofile_max = NOFILE;
 
