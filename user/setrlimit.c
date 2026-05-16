@@ -10,13 +10,13 @@ int main(int argc, char *argv[])
 
   int n = atoi(argv[1]);
   struct rlimit limit;
-  struct rlimit new_limit;
+  int new_limit;
 
-  new_limit.rlim_max = n;
-  new_limit.rlim_cur = n;
+  new_limit = n;
+  
 
   // Hena bn-nada7 el-syscall elly enti 3amaltiha
-  if(setrlimit(2, &new_limit) < 0){
+  if(setrlimit(1, new_limit) < 0){
     printf("setrlimit failed\n");
     exit(1);
   }

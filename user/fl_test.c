@@ -12,8 +12,8 @@ int res = 0;
 getrlimit(res, &lim);
 printf("Default - max: %d\n", (int)lim.rlim_max);
 
-struct rlimit nl = {5, 5};
-setrlimit(res, &nl);
+int new_limit =5;
+setrlimit(res, new_limit);
 
 getrlimit(res, &lim);
 printf("New Limit - max: %d\n", (int)lim.rlim_max);

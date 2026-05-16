@@ -1,6 +1,7 @@
 #define NPROC        64  // maximum number of processes
 #define NCPU          8  // maximum number of CPUs
 #define NOFILE       16  // open files per process
+#define MAX_CPU_TICKS 10000
 #define NFILE       100  // open files per system
 #define NINODE       50  // maximum number of active i-nodes
 #define NDEV         10  // maximum major device number
@@ -13,6 +14,5 @@
 #define MAXPATH      128   // maximum file path name
 #define USERSTACK    1     // user stack pages
 #define RLIMIT_NOFILE 0
-#define RLIMIT_MEMORY 1
-#define RLIMIT_CPU 2
-#define MAX_CPU_TICKS  500   
+#define RLIMIT_CPU 1
+#define RLIMIT_MEMORY 2

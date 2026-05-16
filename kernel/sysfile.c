@@ -42,7 +42,7 @@ fdalloc(struct file *f)
   int fd;
   struct proc *p = myproc();
 
-  for(fd = 0; fd < p->rlimit_cur; fd++){
+  for(fd = 0; fd < p->nofile_cur; fd++){
     if(p->ofile[fd] == 0){
       p->ofile[fd] = f;
       return fd;

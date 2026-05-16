@@ -142,45 +142,44 @@ sys_getrlimit(void)
   lim.rlim_cur = 0;
   lim.rlim_max = 0;
 
-  switch(resource) {
+  switch(resource) 
+  {
     case RLIMIT_NOFILE:{
 // 1. بنعد الملفات اللي العملية فاتحاها فعلياً دلوقتي
-int currently_open = get_proc_open_files(myproc());
-
+      int currently_open = get_proc_open_files(myproc());
 // 2. بنجيب الليميت الخاص بالعملية دي (مش الـ 16 الثابتة)
-int max = myproc()->nofile_max; 
+      int max = myproc()->nofile_max; 
 
-lim.rlim_max = max;;
+      lim.rlim_max = max;
 
 // 3. بنحسب الـ remaining (الفاضل كام ملف مسموح بفتحه)
-if(currently_open >= max)
-lim.rlim_cur = 0;
-else
-lim.rlim_cur = max - currently_open;
-break;
-}
+      if(currently_open >= max)
+        lim.rlim_cur = 0;
+      else
+        lim.rlim_cur = max - currently_open;
+      break;
+    }
     case RLIMIT_MEMORY:
       break;
 
     case RLIMIT_CPU:
-{ uint64 max = myproc()->cpu_ticks_max; 
-uint64 used = myproc()->cpu_ticks;
-
-lim.rlim_max = max;
-
-if(used >= max)
-{
-lim.rlim_cur = 0;
-}
-else
-{
-lim.rlim_cur = max - used;
-}
-break;
-}
-default:
-return -1;
-}
+    { 
+      uint64 max = myproc()->cpu_ticks_max; 
+      uint64 used = myproc()->cpu_ticks;
+      lim.rlim_max = max;
+      if(used >= max)
+      {
+        lim.rlim_cur = 0;
+      }
+      else
+      {
+        lim.rlim_cur = max - used;
+      }
+      break;
+      }
+    default:
+      return -1;
+  }
 
   struct proc *p = myproc();
 
@@ -195,53 +194,58 @@ return -1;
 uint64
 sys_setrlimit(void)
 {
-int resource;
-uint64 user_rlim_addr;
-struct rlimit lim;
+  int resource;
+//  struct rlimit lim;
+  int rlim_max=0;
+  argint(0, &resource);
+  argint(1, &rlim_max);
 
-argint(0, &resource);
-argaddr(1, &user_rlim_addr);
+ // printf("new Limit = %d\n",rlim_max);
+  switch(resource) {
 
-if(copyin(myproc()->pagetable, (char*)&lim,
-user_rlim_addr, sizeof(lim)) < 0)
-return -1;
+    case RLIMIT_CPU:
+    {
+     // printf("Setting CPU limit\n");
+      if(rlim_max > MAX_CPU_TICKS)
+      {
+        printf("setrlimit: exceeds system max %d\n", MAX_CPU_TICKS);
+        return -1;
+      }
+      if(rlim_max == 0)
+      {
+        printf("setrlimit: limit must be > 0\n");
+        return -1;
+      }
+      myproc()->cpu_ticks_max = rlim_max;
+      return 0;
+    }
+    case RLIMIT_NOFILE:
+    {
+     // printf("Setting Files limit\n");
+      if(rlim_max > NOFILE)
+      {
+        printf("setrlimit: exceeds system NOFILE limit %d\n", NOFILE);
+        return -1;
+      }
+      // قاعدة 2: ما ينفعش يكون الليميت 0 أو سالب
+      if(rlim_max <= 0)
+      {
+        printf("setrlimit: limit must be > 0\n");
+        return -1;
+      }
+      // قاعدة 3: ما ينفعش نقلل الليميت عن عدد الملفات اللي العملية فاتحاها فعلياً دلوقتي
+      int currently_open = get_proc_open_files(myproc());
+      if(rlim_max < currently_open)
+      {
+        printf("setrlimit: can't set below currently open files (%d)\n", currently_open);
+        return -1;
+      }
+      myproc()->nofile_max = rlim_max;
+      return 0;
+    }
 
-switch(resource) {
-
-case RLIMIT_CPU:{
-if(lim.rlim_max > MAX_CPU_TICKS){
-printf("setrlimit: exceeds system max %d\n", MAX_CPU_TICKS);
-return -1;
-}
-if(lim.rlim_max == 0){
-printf("setrlimit: limit must be > 0\n");
-return -1;
-}
-myproc()->cpu_ticks_max = lim.rlim_max;
-return 0;
-}
-case RLIMIT_NOFILE:{
-if(lim.rlim_max > NOFILE){
-printf("setrlimit: exceeds system NOFILE limit %d\n", NOFILE);
-return -1;
-}
-// قاعدة 2: ما ينفعش يكون الليميت 0 أو سالب
-if(lim.rlim_max <= 0){
-printf("setrlimit: limit must be > 0\n");
-return -1;
-}
-// قاعدة 3: ما ينفعش نقلل الليميت عن عدد الملفات اللي العملية فاتحاها فعلياً دلوقتي
-int currently_open = get_proc_open_files(myproc());
-if(lim.rlim_max < currently_open){
-printf("setrlimit: can't set below currently open files (%d)\n", currently_open);
-return -1;
-}
-myproc()->nofile_max = lim.rlim_max;
-return 0;
-}
-
-default:
-return -1;
+    default:
+      return -1;
 }
 }
 
