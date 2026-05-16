@@ -91,8 +91,6 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
-  int rlimit_cur;              // Current soft limit for open files
-  int rlimit_max;              // Hard limit for open files
   int nofile_max;              // per-process open file limit
 
   // wait_lock must be held when using this:

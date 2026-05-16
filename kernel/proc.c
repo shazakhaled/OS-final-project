@@ -124,8 +124,6 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-  p->rlimit_cur = 16;
-  p->rlimit_max = 16;
   p->cpu_ticks = 0;
   p->nofile_max = NOFILE;
   p->cpu_ticks_max = 10000;
