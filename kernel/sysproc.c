@@ -217,6 +217,7 @@ sys_setrlimit(void)
         return -1;
       }
       myproc()->cpu_ticks_max = rlim_max;
+      myproc()->cpu_ticks = 0; // reset the current cpu time for the process
       return 0;
     }
     case RLIMIT_NOFILE:

@@ -148,6 +148,8 @@ test_multiple_allocs(void)
 int
 main(void)
 {
+//int lim=1000;
+//setrlimit(1,lim);
   printf("=== meminfo syscall test suite ===\n\n");
 
   test_valid_pointer();
