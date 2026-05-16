@@ -18,14 +18,14 @@ main(int argc, char* argv[])
   }
   int sum=0;
   struct rlimit limit;
-  getrlimit(2,&limit);
+  getrlimit(1,&limit);
   
   printf("CPU ticks remaining (before loop): %lu\n",limit.rlim_cur);
   for(int i = 1; i < n; i++){
     for(int j=1;j<n;j++)
     sum+=j*i;
   }
-  getrlimit(2,&limit);
+  getrlimit(1,&limit);
   
   printf("CPU ticks remaining (after loop): %lu\n",limit.rlim_cur);
   exit(0);
