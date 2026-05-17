@@ -6,6 +6,8 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "rusage.h"
+extern struct proc proc[];
 
 uint64
 sys_exit(void)
@@ -249,3 +251,35 @@ sys_setrlimit(void)
 }
 }
 
+uint64
+sys_getrusage(void)
+{
+  static char *states[] = {
+    [UNUSED]    "unused",
+    [USED]      "used",
+    [SLEEPING]  "sleep",
+    [RUNNABLE]  "runnable",
+    [RUNNING]   "running",
+    [ZOMBIE]    "zombie"
+  };
+
+  printf("PID\tNAME\tSTATE\tRUNTIME\tWAITTIME\tSLEEPTIME\tCTXSW\n");
+  printf("----------------------------------------------------------------\n");
+
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      printf("%d\t%s\t%s\t\t%lu\t%lu\t%lu\t%d\n",
+        p->pid,
+        p->name,
+        states[p->state],
+        p->cpu_ticks,
+        p->wait_ticks,
+        p->sleep_ticks,
+        p->context_switches);
+    }
+    release(&p->lock);
+  }
+  return 0;
+}

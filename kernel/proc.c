@@ -128,9 +128,12 @@ found:
   p->cpu_ticks_max = 500;
   p->nofile_cur=NOFILE;
   p->nofile_max = NOFILE;
-
-  
-
+  p->start_time = ticks;    // record when this process was born
+  p->sleep_ticks = 0; 
+  p->wait_ticks = 0;
+  p->context_switches = 0;
+  p->wait_start = ticks; 
+  p->sleep_start = 0;
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
     freeproc(p);
@@ -233,7 +236,7 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
-
+  p->wait_start = ticks;  // started waiting for CPU
   release(&p->lock);
 }
 
@@ -306,6 +309,7 @@ kfork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  np->wait_start = ticks;  // started waiting for CPU
   release(&np->lock);
 
   return pid;
@@ -452,6 +456,8 @@ scheduler(void)
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+        p->context_switches++;
+        p->wait_ticks += (ticks - p->wait_start);  // wait is over
         swtch(&c->context, &p->context);
 
         // Process is done running for now.
@@ -502,6 +508,7 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
+  p->wait_start = ticks;  // started waiting for CPU
   sched();
   release(&p->lock);
 }
@@ -563,7 +570,7 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
-
+  p->sleep_start = ticks;  // started sleeping
   sched();
 
   // Tidy up.
@@ -586,6 +593,8 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
+        p->sleep_ticks += (ticks - p->sleep_start);  // done sleeping 
+        p->wait_start = ticks;  // started waiting for CPU
       }
       release(&p->lock);
     }
@@ -607,7 +616,9 @@ kkill(int pid)
       if(p->state == SLEEPING){
         // Wake process from sleep().
         p->state = RUNNABLE;
-      }
+        p->sleep_ticks += (ticks - p->sleep_start);  // done sleeping
+        p->wait_start = ticks;  // started waiting for CPU   
+   }
       release(&p->lock);
       return 0;
     }
