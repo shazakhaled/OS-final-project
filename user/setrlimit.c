@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  getrlimit(2, &limit);
+  getrlimit(1, &limit);
   printf("New limit set to: %lu ticks\n", limit.rlim_max);
 
   printf("Running heavy loop to test limit...\n");
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  getrlimit(2, &limit);
+  getrlimit(1, &limit);
   printf("Loop finished. Remaining ticks: %lu\n", limit.rlim_cur);
   printf("Sum: %d\n", sum);
 

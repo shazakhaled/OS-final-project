@@ -81,19 +81,21 @@ usertrap(void)
     kexit(-1);
 
   // give up the CPU if this is a timer interrupt.
-if(which_dev == 2){
-struct proc *lp =myproc();
-if(lp !=0 && lp->state == RUNNING){
-lp->cpu_ticks++;
-if(lp->cpu_ticks_max > 0 && lp->cpu_ticks >= lp->cpu_ticks_max){
-printf("\n[ALERT] PID %d killed: cpu limit(%d) reached!\n", lp->pid, (int)lp->cpu_ticks_max);
-lp->killed =1;
-}
-}
-    yield();
-}
-  if(myproc()!=0)
-  myproc()->cpu_ticks++;
+  if(which_dev == 2){
+    struct proc *lp =myproc();
+    if(lp !=0 && lp->state == RUNNING)
+    {
+      lp->cpu_ticks++;
+      if(lp->cpu_ticks_max > 0 && lp->cpu_ticks >= lp->cpu_ticks_max)
+      {
+        printf("\n[ALERT] PID %d killed: cpu limit(%d) reached!\n", lp->pid, (int)lp->cpu_ticks_max);
+        lp->killed =1;
+      }
+    }
+        yield();
+  }
+//  if(myproc()!=0)
+//    myproc()->cpu_ticks++;
 
   prepare_return();
 
@@ -165,9 +167,11 @@ kerneltrap()
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2 && myproc() != 0)
-    yield();
-  if(myproc()!=0)
+  {
     myproc()->cpu_ticks++;
+    yield();
+  }
+
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.

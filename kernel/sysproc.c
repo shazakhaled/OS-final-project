@@ -207,18 +207,25 @@ sys_setrlimit(void)
 
     case RLIMIT_CPU:
     {
+      if(rlim_max == 0)
+      {
+        printf("setrlimit: limit must be > 0\n");
+        return -1;
+      }
      // printf("Setting CPU limit\n");
       if(rlim_max > MAX_CPU_TICKS)
       {
         printf("setrlimit: exceeds system max %d\n", MAX_CPU_TICKS);
         return -1;
       }
-      if(rlim_max == 0)
+
+      if(rlim_max<myproc()->cpu_ticks)
       {
-        printf("setrlimit: limit must be > 0\n");
+        printf("setrlimit: limit must be greater than CPU ticks used.\n");
         return -1;
       }
       myproc()->cpu_ticks_max = rlim_max;
+//      myproc()->cpu_ticks = 0; // reset the current cpu time for the process
       return 0;
     }
     case RLIMIT_NOFILE:
