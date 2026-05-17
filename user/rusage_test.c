@@ -4,8 +4,7 @@
 
 int main(){
  
- struct rusage info;
- getrusage(&info);
+ getrusage();
 
  printf("PID");
 
