@@ -1,4 +1,5 @@
 #define SBRK_ERROR ((char *)-1)
+#include "kernel/rusage.h"
 
 struct stat;
 struct rlimit;
@@ -28,6 +29,7 @@ int uptime(void);
 int meminfo(struct meminfo *);
 int getrlimit(int resource, struct rlimit *rlim);
 int setrlimit(int resource, int lim);
+int getrusage(void);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

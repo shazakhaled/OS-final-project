@@ -45,3 +45,4 @@ entry("uptime");
 entry("meminfo");
 entry("getrlimit");
 entry("setrlimit");
+entry("getrusage");

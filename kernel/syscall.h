@@ -23,4 +23,5 @@
 #define SYS_meminfo 22
 #define SYS_getrlimit 23
 #define SYS_setrlimit 24
+#define SYS_getrusage 25
 

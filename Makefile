@@ -153,7 +153,7 @@ UPROGS=\
         $U/_cpu_limit_test\
         $U/_setrlimit\
         $U/_fl_test\
-
+        $U/_yarab\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
