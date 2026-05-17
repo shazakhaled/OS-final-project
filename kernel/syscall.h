@@ -24,4 +24,4 @@
 #define SYS_getrlimit 23
 #define SYS_setrlimit 24
 #define SYS_getrusage 25
-
+#define SYS_inodepairs  26

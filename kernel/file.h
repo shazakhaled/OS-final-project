@@ -38,3 +38,24 @@ struct devsw {
 extern struct devsw devsw[];
 
 #define CONSOLE 1
+
+#define MAX_INODE_PAIRS 64
+
+struct inode_pair {
+  int inum;
+  int dev;
+
+  int offset_a;
+  int offset_b;
+
+  int pid_a;
+  int fd_a;
+
+  int pid_b;
+  int fd_b;
+};
+
+struct inode_pairs {
+  int npairs;
+  struct inode_pair pairs[MAX_INODE_PAIRS];
+};
