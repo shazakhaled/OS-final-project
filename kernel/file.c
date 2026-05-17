@@ -178,30 +178,7 @@ filewrite(struct file *f, uint64 addr, int n)
   return ret;
 }
 
-// Count number of opened files in the system
 
-int
-get_total_open_files(void){
-
-int count = 0;
-struct file *f; 
-
-acquire(&ftable.lock);
-
-for(f = ftable.file; f  < ftable.file + NFILE ; f++){
-if(f->ref > 0){
-count++;
-}
-}
-
-release(&ftable.lock);
-
-
-
-return count;
-}
-
-// count open files  for a specific process  not all process
 int
 get_proc_open_files(struct proc *p)
 {
@@ -211,4 +188,85 @@ if(p->ofile[i] != 0)
 count++;
 }
 return count;
+}
+
+
+uint64
+sys_inodepairs(void)
+{
+  struct inode_pairs out;
+  int n = 0;
+
+  struct inode_pairs *uout;
+
+  if(argaddr(0, (uint64*)&uout) < 0)
+    return -1;
+
+  acquire(&ftable.lock);
+
+  for(int i = 0; i < NFILE; i++){
+    struct file *f = &ftable.file[i];
+
+    if(f->ref <= 0 || f->ip == 0)
+      continue;
+
+    for(int j = i + 1; j < NFILE; j++){
+      struct file *g = &ftable.file[j];
+
+      if(g->ref <= 0 || g->ip == 0)
+        continue;
+
+      if(f->ip != g->ip)
+        continue;
+
+      if(n >= MAX_INODE_PAIRS)
+        break;
+
+      int pid_a = -1, fd_a = -1;
+      int pid_b = -1, fd_b = -1;
+
+      for(struct proc *p = proc; p < &proc[NPROC]; p++){
+        acquire(&p->lock);
+
+        for(int fd = 0; fd < NOFILE; fd++){
+          if(p->ofile[fd] == f){
+            pid_a = p->pid;
+            fd_a = fd;
+          }
+          if(p->ofile[fd] == g){
+            pid_b = p->pid;
+            fd_b = fd;
+          }
+        }
+
+        release(&p->lock);
+      }
+
+      struct inode_pair *r = &out.pairs[n++];
+
+      r->inum = f->ip->inum;
+      r->dev  = f->ip->dev;
+
+      r->offset_a = f->off;
+      r->offset_b = g->off;
+
+      r->pid_a = pid_a;
+      r->fd_a  = fd_a;
+
+      r->pid_b = pid_b;
+      r->fd_b  = fd_b;
+    }
+  }
+
+  release(&ftable.lock);
+
+  out.npairs = n;
+
+  if(copyout(myproc()->pagetable,
+             (uint64)uout,
+             (char*)&out,
+             sizeof(out)) < 0)
+    return -1;
+
+  return 0;
 }
