@@ -15,4 +15,3 @@
 #define USERSTACK    1     // user stack pages
 #define RLIMIT_NOFILE 0
 #define RLIMIT_CPU 1
-#define RLIMIT_MEMORY 2

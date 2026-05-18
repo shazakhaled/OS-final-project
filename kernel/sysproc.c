@@ -136,7 +136,6 @@ sys_getrlimit(void)
   uint64 user_rlim_addr;
   struct rlimit lim;
 
-  // في XV6 الـ functions دي void، بنناديها والـ Kernel بيملى المتغيرات
   argint(0, &resource);
   argaddr(1, &user_rlim_addr);
 
@@ -147,22 +146,18 @@ sys_getrlimit(void)
   switch(resource) 
   {
     case RLIMIT_NOFILE:{
-// 1. بنعد الملفات اللي العملية فاتحاها فعلياً دلوقتي
       int currently_open = get_proc_open_files(myproc());
-// 2. بنجيب الليميت الخاص بالعملية دي (مش الـ 16 الثابتة)
+
       int max = myproc()->nofile_max; 
 
       lim.rlim_max = max;
 
-// 3. بنحسب الـ remaining (الفاضل كام ملف مسموح بفتحه)
       if(currently_open >= max)
         lim.rlim_cur = 0;
       else
         lim.rlim_cur = max - currently_open;
       break;
     }
-    case RLIMIT_MEMORY:
-      break;
 
     case RLIMIT_CPU:
     { 

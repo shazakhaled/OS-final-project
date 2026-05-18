@@ -156,6 +156,7 @@ UPROGS=\
         $U/_yarab\
         $U/_test2\
         $U/_testip\
+
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
 
