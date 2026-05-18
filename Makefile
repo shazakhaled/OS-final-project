@@ -154,6 +154,8 @@ UPROGS=\
         $U/_setrlimit\
         $U/_fl_test\
         $U/_yarab\
+        $U/_testip\
+        
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

@@ -194,16 +194,19 @@ return count;
 uint64
 sys_inodepairs(void)
 {
+  
+  extern struct proc proc[];
+
   struct inode_pairs out;
   int n = 0;
-
   struct inode_pairs *uout;
 
-  if(argaddr(0, (uint64*)&uout) < 0)
-    return -1;
+  
+  argaddr(0, (uint64*)&uout);
 
   acquire(&ftable.lock);
 
+  
   for(int i = 0; i < NFILE; i++){
     struct file *f = &ftable.file[i];
 
@@ -222,26 +225,42 @@ sys_inodepairs(void)
       if(n >= MAX_INODE_PAIRS)
         break;
 
+      
       int pid_a = -1, fd_a = -1;
       int pid_b = -1, fd_b = -1;
+
+      
+      release(&ftable.lock);
 
       for(struct proc *p = proc; p < &proc[NPROC]; p++){
         acquire(&p->lock);
 
-        for(int fd = 0; fd < NOFILE; fd++){
-          if(p->ofile[fd] == f){
-            pid_a = p->pid;
-            fd_a = fd;
-          }
-          if(p->ofile[fd] == g){
-            pid_b = p->pid;
-            fd_b = fd;
+        if(p->state != UNUSED){ 
+          for(int fd = 0; fd < NOFILE; fd++){
+            if(p->ofile[fd] == f){
+              pid_a = p->pid;
+              fd_a = fd;
+            }
+            if(p->ofile[fd] == g){
+              pid_b = p->pid;
+              fd_b = fd;
+            }
           }
         }
 
         release(&p->lock);
       }
 
+      
+      acquire(&ftable.lock);
+
+      
+      f = &ftable.file[i];
+      g = &ftable.file[j];
+      if(f->ref <= 0 || g->ref <= 0 || f->ip != g->ip)
+        continue;
+
+      
       struct inode_pair *r = &out.pairs[n++];
 
       r->inum = f->ip->inum;
@@ -262,6 +281,7 @@ sys_inodepairs(void)
 
   out.npairs = n;
 
+ 
   if(copyout(myproc()->pagetable,
              (uint64)uout,
              (char*)&out,
