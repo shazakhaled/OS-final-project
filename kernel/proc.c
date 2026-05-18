@@ -284,7 +284,10 @@ kfork(void)
     return -1;
   }
   np->sz = p->sz;
-
+//COPY NEW FILE LIMIT
+  np->nofile_max = p->nofile_max;
+  np->cpu_ticks_max = p->cpu_ticks_max; // Copy the strict ceiling rule
+  np->cpu_ticks = 0;                    // Fresh child starts at 0 ticks used
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 

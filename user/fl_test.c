@@ -9,6 +9,14 @@ void cleanup(int fds[], int n)
         int result;
         if(fds[i] >= 0) //it has a valid file open
         {
+          //randomly decide whether to close or not  
+          //does NOT close odd i
+          //to ensure fd[0] is always closed in case limit is 4
+          if((i%2)==1)
+          {
+            printf("Randomly will not close file %d\n",fds[i]);
+            continue;
+          }
           printf("Closing fds %d.\n", fds[i]);
           result=close(fds[i]);
           if(result<0)
@@ -20,6 +28,9 @@ void cleanup(int fds[], int n)
         }
 
     }
+  struct rlimit lim;
+  getrlimit(RLIMIT_NOFILE, &lim);
+  printf("Number of files we can open: %d\n", (int)lim.rlim_cur);
 }
 int main(int argc, char *argv[]) {
 
@@ -47,6 +58,25 @@ int main(int argc, char *argv[]) {
   getrlimit(res, &lim);
   printf("New Limit - max: %d\n", (int)lim.rlim_max);
   
+  int pid=fork();
+  if(pid < 0)
+  {
+    printf("Fork failed\n");
+    exit(1);
+  }
+  if(pid == 0) {
+    // child
+    printf("Inside child\n");
+    struct rlimit child_lim;
+    getrlimit(RLIMIT_NOFILE, &child_lim);
+    printf("Inherited (rlim_cur): %d\n", (int)child_lim.rlim_cur);
+    printf("Inherited hard limit (rlim_max): %d\n", (int)child_lim.rlim_max);
+    exit(0);
+  }
+  else
+  {
+  wait(0);
+  printf("INSIDE PARENT\n");
   int fds[20];
   for(int i = 0; i < 20; i++) {
       fds[i] = -1;
@@ -54,16 +84,18 @@ int main(int argc, char *argv[]) {
   
   for(int i = 0; i < n+4; i++)
   {
+    printf("Iteration: %d\n", i+1);
     fds[i]=open("README", 0);
     if(fds[i] < 0)
     {
       printf("LIMIT EXCEEDED at iteration: %d\n", i+1);
-      printf("Will close all files previously opened.\n");
+      printf("Will close some previously opened files.\n");
       cleanup(fds,i);
-//     exit(0);
     }
     else
     printf("Opened file %d successfully.\n", fds[i]);
   }
 exit(0);
-}
+
+  }
+  }
