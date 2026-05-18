@@ -189,3 +189,104 @@ count++;
 }
 return count;
 }
+
+
+uint64
+sys_inodepairs(void)
+{
+  
+  extern struct proc proc[];
+
+  struct inode_pairs out;
+  int n = 0;
+  struct inode_pairs *uout;
+
+  
+  argaddr(0, (uint64*)&uout);
+
+  acquire(&ftable.lock);
+
+  
+  for(int i = 0; i < NFILE; i++){
+    struct file *f = &ftable.file[i];
+
+    if(f->ref <= 0 || f->ip == 0)
+      continue;
+
+    for(int j = i + 1; j < NFILE; j++){
+      struct file *g = &ftable.file[j];
+
+      if(g->ref <= 0 || g->ip == 0)
+        continue;
+
+      if(f->ip != g->ip)
+        continue;
+
+      if(n >= MAX_INODE_PAIRS)
+        break;
+
+      
+      int pid_a = -1, fd_a = -1;
+      int pid_b = -1, fd_b = -1;
+
+      
+      release(&ftable.lock);
+
+      for(struct proc *p = proc; p < &proc[NPROC]; p++){
+        acquire(&p->lock);
+
+        if(p->state != UNUSED){ 
+          for(int fd = 0; fd < NOFILE; fd++){
+            if(p->ofile[fd] == f){
+              pid_a = p->pid;
+              fd_a = fd;
+            }
+            if(p->ofile[fd] == g){
+              pid_b = p->pid;
+              fd_b = fd;
+            }
+          }
+        }
+
+        release(&p->lock);
+      }
+
+      
+      acquire(&ftable.lock);
+
+      
+      f = &ftable.file[i];
+      g = &ftable.file[j];
+      if(f->ref <= 0 || g->ref <= 0 || f->ip != g->ip)
+        continue;
+
+      
+      struct inode_pair *r = &out.pairs[n++];
+
+      r->inum = f->ip->inum;
+      r->dev  = f->ip->dev;
+
+      r->offset_a = f->off;
+      r->offset_b = g->off;
+
+      r->pid_a = pid_a;
+      r->fd_a  = fd_a;
+
+      r->pid_b = pid_b;
+      r->fd_b  = fd_b;
+    }
+  }
+
+  release(&ftable.lock);
+
+  out.npairs = n;
+
+ 
+  if(copyout(myproc()->pagetable,
+             (uint64)uout,
+             (char*)&out,
+             sizeof(out)) < 0)
+    return -1;
+
+  return 0;
+}
