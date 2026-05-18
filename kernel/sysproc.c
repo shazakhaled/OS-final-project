@@ -175,7 +175,10 @@ sys_getrlimit(void)
       break;
       }
     default:
+    {
+      printf("getrlimit: invalid resource.");
       return -1;
+    }
   }
 
   struct proc *p = myproc();
@@ -214,7 +217,7 @@ sys_setrlimit(void)
         return -1;
       }
 
-      if(rlim_max<myproc()->cpu_ticks)
+      if(rlim_max<=myproc()->cpu_ticks)
       {
         printf("setrlimit: limit must be greater than CPU ticks used.\n");
         return -1;
@@ -239,7 +242,7 @@ sys_setrlimit(void)
       }
       // قاعدة 3: ما ينفعش نقلل الليميت عن عدد الملفات اللي العملية فاتحاها فعلياً دلوقتي
       int currently_open = get_proc_open_files(myproc());
-      if(rlim_max < currently_open)
+      if(rlim_max <= currently_open)
       {
         printf("setrlimit: can't set below currently open files (%d)\n", currently_open);
         return -1;
@@ -249,7 +252,10 @@ sys_setrlimit(void)
     }
 
     default:
+    {
+      printf("setrlimit: invalid resource.");
       return -1;
+    }
 }
 }
 
