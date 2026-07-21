@@ -42,7 +42,7 @@ fdalloc(struct file *f)
   int fd;
   struct proc *p = myproc();
 
-  for(fd = 0; fd < NOFILE; fd++){
+  for(fd = 0; fd < p->nofile_cur; fd++){
     if(p->ofile[fd] == 0){
       p->ofile[fd] = f;
       return fd;
@@ -310,8 +310,17 @@ sys_open(void)
   struct inode *ip;
   int n;
 
+int currently_open = get_proc_open_files(myproc());
+
+if(currently_open >= myproc()->nofile_max) {
+// بنطبع رسالة الـ ALERT عشان نعرف إن الليميت اشتغل
+printf("open: process file limit reached (%d)\n", myproc()->nofile_max);
+return -1; // ارفض العملية فوراً
+}
+
+
   argint(1, &omode);
-  if((n = argstr(0, path, MAXPATH)) < 0)
+	  if((n = argstr(0, path, MAXPATH)) < 0)
     return -1;
 
   begin_op();

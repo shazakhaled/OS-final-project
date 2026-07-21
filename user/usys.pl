@@ -43,3 +43,7 @@ entry("sbrk");
 entry("pause");
 entry("uptime");
 entry("meminfo");
+entry("getrlimit");
+entry("setrlimit");
+entry("getrusage");
+entry("inodepairs");

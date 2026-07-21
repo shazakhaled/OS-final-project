@@ -33,7 +33,8 @@ void            fileinit(void);
 int             fileread(struct file*, uint64, int n);
 int             filestat(struct file*, uint64 addr);
 int             filewrite(struct file*, uint64, int n);
-
+int             get_total_open_files(void);
+int             get_proc_open_files(struct proc*);
 // fs.c
 void            fsinit(int);
 int             dirlink(struct inode*, char*, uint);
@@ -61,6 +62,7 @@ void            kfree(void *);
 void            kinit(void);
 void            get_mem_stats(struct meminfo*);
 uint64          count_free_mem(void);
+uint64          count_total_mem(void);
 // log.c
 void            initlog(int, struct superblock*);
 void            log_write(struct buf*);
@@ -184,3 +186,4 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+

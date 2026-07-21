@@ -91,6 +91,8 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
+  int nofile_cur;
+  int nofile_max;              // per-process open file limit
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
@@ -104,4 +106,12 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  uint64 cpu_ticks;            // ticks used so far
+  uint64 cpu_ticks_max;        // per-process limit
+  uint64 start_time;        // tick when process was created
+  uint64 sleep_ticks;       // ticks spent sleeping
+  uint64 wait_ticks;        // ticks spent waiting to run
+  uint64 wait_start;   // tick when process became RUNNABLE
+  uint64 sleep_start;  // tick when process went to sleep
+ int context_switches;  // number of times scheduled in
 };

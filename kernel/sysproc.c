@@ -6,6 +6,8 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "rusage.h"
+extern struct proc proc[];
 
 uint64
 sys_exit(void)
@@ -111,21 +113,181 @@ sys_uptime(void)
 uint64
 sys_meminfo(void)
 {
-  struct meminfo mi;
   uint64 addr;
+  struct meminfo mi;
 
-  mi.free_mem = count_free_mem();
-  mi.used_mem = (PHYSTOP - KERNBASE) - mi.free_mem;
+  argaddr(0, &addr);
+   
 
-  printf("\n--- Kernel Memory Stats ---\n");
-  printf("Free Memory: %d bytes\n", (int)mi.free_mem);
-  printf("Used Memory: %d bytes\n", (int)mi.used_mem);
-  printf("---------------------------\n");
-
-  argaddr(0, &addr); 
+  mi.total_mem = count_total_mem();
+  mi.free_mem  = count_free_mem();
+  mi.used_mem  = mi.total_mem - mi.free_mem;
 
   if(copyout(myproc()->pagetable, addr, (char *)&mi, sizeof(mi)) < 0)
     return -1;
 
+  return 0;
+}
+
+uint64
+sys_getrlimit(void)
+{
+  int resource;
+  uint64 user_rlim_addr;
+  struct rlimit lim;
+
+  argint(0, &resource);
+  argaddr(1, &user_rlim_addr);
+
+  // default init
+  lim.rlim_cur = 0;
+  lim.rlim_max = 0;
+
+  switch(resource) 
+  {
+    case RLIMIT_NOFILE:{
+      int currently_open = get_proc_open_files(myproc());
+
+      int max = myproc()->nofile_max; 
+
+      lim.rlim_max = max;
+
+      if(currently_open >= max)
+        lim.rlim_cur = 0;
+      else
+        lim.rlim_cur = max - currently_open;
+      break;
+    }
+
+    case RLIMIT_CPU:
+    { 
+      uint64 max = myproc()->cpu_ticks_max; 
+      uint64 used = myproc()->cpu_ticks;
+      lim.rlim_max = max;
+      if(used >= max)
+      {
+        lim.rlim_cur = 0;
+      }
+      else
+      {
+        lim.rlim_cur = max - used;
+      }
+      break;
+      }
+    default:
+    {
+      printf("getrlimit: invalid resource.");
+      return -1;
+    }
+  }
+
+  struct proc *p = myproc();
+
+  if(copyout(p->pagetable, user_rlim_addr, (char *)&lim, sizeof(lim)) < 0)
+    return -1;
+
+  return 0;
+}
+
+
+
+uint64
+sys_setrlimit(void)
+{
+  int resource;
+//  struct rlimit lim;
+  int rlim_max=0;
+  argint(0, &resource);
+  argint(1, &rlim_max);
+
+ // printf("new Limit = %d\n",rlim_max);
+  switch(resource) {
+
+    case RLIMIT_CPU:
+    {
+      if(rlim_max == 0)
+      {
+        printf("setrlimit: limit must be > 0\n");
+        return -1;
+      }
+     // printf("Setting CPU limit\n");
+      if(rlim_max > MAX_CPU_TICKS)
+      {
+        printf("setrlimit: exceeds system max %d\n", MAX_CPU_TICKS);
+        return -1;
+      }
+
+      if(rlim_max<=myproc()->cpu_ticks)
+      {
+        printf("setrlimit: limit must be greater than CPU ticks used.\n");
+        return -1;
+      }
+      myproc()->cpu_ticks_max = rlim_max;
+//      myproc()->cpu_ticks = 0; // reset the current cpu time for the process
+      return 0;
+    }
+    case RLIMIT_NOFILE:
+    {
+     // printf("Setting Files limit\n");
+      if(rlim_max > NOFILE)
+      {
+        printf("setrlimit: exceeds system NOFILE limit %d\n", NOFILE);
+        return -1;
+      }
+      // قاعدة 2: ما ينفعش يكون الليميت 0 أو سالب
+      if(rlim_max <= 0)
+      {
+        printf("setrlimit: limit must be > 0\n");
+        return -1;
+      }
+      // قاعدة 3: ما ينفعش نقلل الليميت عن عدد الملفات اللي العملية فاتحاها فعلياً دلوقتي
+      int currently_open = get_proc_open_files(myproc());
+      if(rlim_max <= currently_open)
+      {
+        printf("setrlimit: can't set below currently open files (%d)\n", currently_open);
+        return -1;
+      }
+      myproc()->nofile_max = rlim_max;
+      return 0;
+    }
+
+    default:
+    {
+      printf("setrlimit: invalid resource.");
+      return -1;
+    }
+}
+}
+
+uint64
+sys_getrusage(void)
+{
+  static char *states[] = {
+    [UNUSED]    "unused",
+    [USED]      "used",
+    [SLEEPING]  "sleep",
+    [RUNNABLE]  "runnable",
+    [RUNNING]   "running",
+    [ZOMBIE]    "zombie"
+  };
+
+  printf("PID\tNAME\tSTATE\tRUNTIME\tWAITTIME\tSLEEPTIME\tCTXSW\n");
+  printf("----------------------------------------------------------------\n");
+
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      printf("%d\t%s\t%s\t\t%lu\t%lu\t%lu\t%d\n",
+        p->pid,
+        p->name,
+        states[p->state],
+        p->cpu_ticks,
+        p->wait_ticks,
+        p->sleep_ticks,
+        p->context_switches);
+    }
+    release(&p->lock);
+  }
   return 0;
 }

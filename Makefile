@@ -145,7 +145,19 @@ UPROGS=\
 	$U/_logstress\
 	$U/_forphan\
 	$U/_dorphan\
+        $U/_free\
         $U/_memtest\
+        $U/_stress\
+        $U/_getrlimit\
+        $U/_exhaust_test\
+        $U/_cpu_limit_test\
+        $U/_setrlimit\
+        $U/_fl_test\
+        $U/_yarab\
+        $U/_test2\
+        $U/_testip\
+        $U/_cpu_test\
+        $U/_cpu_test_2\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

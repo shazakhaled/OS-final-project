@@ -1,6 +1,9 @@
 #define SBRK_ERROR ((char *)-1)
+#include "kernel/rusage.h"
 
 struct stat;
+struct rlimit;
+struct inode_pairs;
 
 // system calls
 int fork(void);
@@ -25,6 +28,10 @@ char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
 int meminfo(struct meminfo *);
+int getrlimit(int resource, struct rlimit *rlim);
+int setrlimit(int resource, int lim);
+int getrusage(void);
+int inodepairs(struct inode_pairs*);
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
